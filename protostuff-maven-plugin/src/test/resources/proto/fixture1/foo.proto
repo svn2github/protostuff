@@ -1,0 +1,15 @@
+package foo;
+
+option optimize_for = LITE_RUNTIME;
+option java_package = "com.example.foo";
+
+message Person {
+  required int32 id = 1;
+  optional string name = 2;
+  optional string motto = 3 [default="When the cat is away, the mouse is alone!"];
+  enum Gender {
+    MALE = 1;
+    FEMALE = 2;
+  }
+  optional Gender gender = 4;
+}
