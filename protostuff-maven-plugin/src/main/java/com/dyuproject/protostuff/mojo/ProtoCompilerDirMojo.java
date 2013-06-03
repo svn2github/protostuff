@@ -39,6 +39,17 @@ import com.dyuproject.protostuff.compiler.CompilerMain;
  */
 public class ProtoCompilerDirMojo extends AbstractMojo {
 
+	private static class ProtoFileFilter implements FileFilter {
+
+		private static final String PROTOBUF_FILE_EXTENTION = ".proto";
+
+		public boolean accept(File pathname) {
+			return pathname.getName().endsWith(PROTOBUF_FILE_EXTENTION);
+		}
+	}
+	
+	private static FileFilter PROTOC_FILE_FILTER  = new ProtoFileFilter(); 
+	
 	/**
 	 * The current Maven project.
 	 * 
@@ -130,12 +141,23 @@ public class ProtoCompilerDirMojo extends AbstractMojo {
 	}
 
 	private void compileContainingProtoFiles(File currentMojoDir) throws Exception {
-		File[] filesList = currentMojoDir.listFiles(new ProtoFileFilter());
-		for (File currentProtoFile : filesList) {
-			com.dyuproject.protostuff.compiler.ProtoModule module = new com.dyuproject.protostuff.compiler.ProtoModule(currentProtoFile,
-					protoDirectory.getOutput(), "UTF-8", outputBaseDir);
-			CompilerMain.compile(module);
+		File[] filesList = currentMojoDir.listFiles();
+		for (File currentFileHandler : filesList) {
+			if(currentFileHandler.isDirectory()){
+				if(protoDirectory.isRecursive()){
+					compileContainingProtoFiles(currentFileHandler);
+				}
+			} else if(currentFileHandler.isFile() && PROTOC_FILE_FILTER.accept(currentFileHandler)){
+				compileProtoFile(currentFileHandler);
+			}
 		}
+	}
+
+	private void compileProtoFile(File currentFileHandler) throws Exception {
+		com.dyuproject.protostuff.compiler.ProtoModule module = new com.dyuproject.protostuff.compiler.ProtoModule(currentFileHandler,
+																												   protoDirectory.getOutput(), 
+																												   "UTF-8", outputBaseDir);
+		CompilerMain.compile(module);
 	}
 
 	private void printWarnMessage(File currentMojoDir, boolean exists, boolean isDir) throws IOException {
@@ -176,12 +198,4 @@ public class ProtoCompilerDirMojo extends AbstractMojo {
 		return false;
 	}
 
-	private static class ProtoFileFilter implements FileFilter {
-
-		private static final String PROTOBUF_FILE_EXTENTION = ".proto";
-
-		public boolean accept(File pathname) {
-			return pathname.getName().endsWith(PROTOBUF_FILE_EXTENTION);
-		}
-	}
 }

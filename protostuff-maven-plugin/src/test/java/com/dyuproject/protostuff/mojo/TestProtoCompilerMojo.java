@@ -94,6 +94,23 @@ public class TestProtoCompilerMojo extends AbstractMojoTestCase {
 		assertTrue(files.isEmpty());
 	}
 	
+	public void testRecursive() throws Exception {
+		executeMavenPlugin(POM_FIXTURE_DIR + "/proto_directory/recursive_option/pom_rec.xml");
+		Set<String> expectedPaths = new HashSet<String>();
+		expectedPaths.add(createFileSeparatorString("protostuff", "com","example","tutorial","AddressBook.java"));
+		expectedPaths.add(createFileSeparatorString("protostuff", "com","example","tutorial","Name.java"));
+		expectedPaths.add(createFileSeparatorString("protostuff", "com","example","tutorial","Person.java"));
+		checkGeneratedClasses(expectedPaths);
+	}
+	
+	public void testNonRecursive() throws Exception {
+		executeMavenPlugin(POM_FIXTURE_DIR + "/proto_directory/recursive_option/pom_non_rec.xml");
+		Set<String> expectedPaths = new HashSet<String>();
+		expectedPaths.add(createFileSeparatorString("protostuff", "com","example","tutorial","AddressBook.java"));
+		expectedPaths.add(createFileSeparatorString("protostuff", "com","example","tutorial","Person.java"));
+		checkGeneratedClasses(expectedPaths);
+	}
+	
 	private void executeMavenPlugin(String pomLocation) throws Exception, MojoExecutionException, MojoFailureException {
 		executeMavenPlugin(pomLocation, DEFAULT_BASEDIR);
 	}
@@ -133,6 +150,18 @@ public class TestProtoCompilerMojo extends AbstractMojoTestCase {
 		assertEquals(expectedPaths.size(), i);
 	}
 	
+	private boolean valueContainedInPrefixSet(Set<String> prefixValues, String value){
+		boolean found = false;
+		if(prefixValues != null)
+			for(String currentPrefix : prefixValues){
+				if(value.endsWith(currentPrefix)){
+					found = true;
+					break;
+				}
+			}
+		return found;
+	}
+	
 	private List<File> getFilesFromDirs(File fileHandlerWorkingDir) {
 		List<File> foundFiles = new ArrayList<File>();
 		if (fileHandlerWorkingDir != null && fileHandlerWorkingDir.exists()) {
@@ -151,18 +180,6 @@ public class TestProtoCompilerMojo extends AbstractMojoTestCase {
 			}
 		}
 		return foundFiles;
-	}
-
-	private boolean valueContainedInPrefixSet(Set<String> prefixValues, String value){
-		boolean found = false;
-		if(prefixValues != null)
-			for(String currentPrefix : prefixValues){
-				if(value.endsWith(currentPrefix)){
-					found = true;
-					break;
-				}
-			}
-		return found;
 	}
 
 }
