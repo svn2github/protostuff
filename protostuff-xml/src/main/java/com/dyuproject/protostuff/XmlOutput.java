@@ -30,8 +30,6 @@ import com.dyuproject.protostuff.StringSerializer.STRING;
 public final class XmlOutput implements Output, StatefulOutput
 {
     
-    static final char[] EMPTY = new char[0];
-    
     private final XMLStreamWriter writer;
     private Schema<?> schema;
     
@@ -67,21 +65,6 @@ public final class XmlOutput implements Output, StatefulOutput
         {
             writer.writeStartElement(name);
             writer.writeCharacters(value);
-            writer.writeEndElement();
-        }
-        catch (XMLStreamException e)
-        {
-            throw new XmlOutputException(e);
-        }
-    }
-    
-    private static void writeB64Encoded(final XMLStreamWriter writer, final String name, 
-            final char[] value) throws IOException
-    {
-        try
-        {
-            writer.writeStartElement(name);
-            writer.writeCharacters(value, 0, value.length);
             writer.writeEndElement();
         }
         catch (XMLStreamException e)
@@ -172,8 +155,17 @@ public final class XmlOutput implements Output, StatefulOutput
     
     public void writeByteArray(int fieldNumber, byte[] value, boolean repeated) throws IOException
     {
-        writeB64Encoded(writer, schema.getFieldName(fieldNumber), 
-                value.length == 0 ? EMPTY : B64Code.cencode(value));
+        final XMLStreamWriter writer = this.writer;
+        try
+        {
+            writer.writeStartElement(schema.getFieldName(fieldNumber));
+            writer.writeCData(STRING.deser(value));
+            writer.writeEndElement();
+        }
+        catch (XMLStreamException e)
+        {
+            throw new XmlOutputException(e);
+        }
     }
     
     public void writeByteRange(boolean utf8String, int fieldNumber, byte[] value, 
@@ -182,11 +174,19 @@ public final class XmlOutput implements Output, StatefulOutput
         if(utf8String)
         {
             writeString(fieldNumber, STRING.deser(value, offset, length), repeated);
+            return;
         }
-        else
+
+        final XMLStreamWriter writer = this.writer;
+        try
         {
-            writeB64Encoded(writer, schema.getFieldName(fieldNumber), 
-                    length == 0 ? EMPTY : B64Code.cencode(value, offset, length));
+            writer.writeStartElement(schema.getFieldName(fieldNumber));
+            writer.writeCData(STRING.deser(value, offset, length));
+            writer.writeEndElement();
+        }
+        catch (XMLStreamException e)
+        {
+            throw new XmlOutputException(e);
         }
     }
     
@@ -201,7 +201,9 @@ public final class XmlOutput implements Output, StatefulOutput
         {
             writer.writeStartElement(lastSchema.getFieldName(fieldNumber));
             
+            writer.writeStartElement(schema.messageName());
             schema.writeTo(this, value);
+            writer.writeEndElement();
             
             writer.writeEndElement();
         }

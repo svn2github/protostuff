@@ -55,8 +55,7 @@ public abstract class PolymorphicSchema implements Schema<Object>
      */
     public interface Factory
     {
-        public PolymorphicSchema newSchema(Class<?> typeClass, 
-                IdStrategy strategy, Handler handler);
+        public PolymorphicSchema newSchema(IdStrategy strategy, Handler handler);
     }
     
     public final IdStrategy strategy;

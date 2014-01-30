@@ -911,7 +911,7 @@ public final class RuntimeUnsafeFieldFactory
                 final java.lang.reflect.Field f, IdStrategy strategy)
         {
             final long offset = us.objectFieldOffset(f);
-            return new RuntimeObjectField<T>(f.getType(), 
+            return new RuntimeObjectField<T>( 
                     FieldType.MESSAGE, number, name, false, 
                     f.getAnnotation(Tag.class), 
                     PolymorphicSchemaFactories.getFactoryFromField(f.getType()), strategy)

@@ -369,9 +369,9 @@ final class RuntimeRepeatedFieldFactory
     
     private static <T> Field<T> createCollectionObjectV(int number, String name, 
             final java.lang.reflect.Field f, final MessageFactory messageFactory, 
-            Class<Object> genericType, PolymorphicSchema.Factory factory, IdStrategy strategy)
+            PolymorphicSchema.Factory factory, IdStrategy strategy)
     {
-        return new RuntimeObjectField<T>(genericType, 
+        return new RuntimeObjectField<T>(
                 FieldType.MESSAGE, number, name, true, 
                 f.getAnnotation(Tag.class), 
                 factory, strategy)
@@ -502,8 +502,7 @@ final class RuntimeRepeatedFieldFactory
             if(genericType == null)
             {
                 // the value is not a simple parameterized type.
-                return createCollectionObjectV(number, name, f, messageFactory, 
-                        genericType, PolymorphicSchemaFactories.OBJECT, strategy);
+                return createCollectionObjectV(number, name, f, messageFactory, PolymorphicSchemaFactories.OBJECT, strategy);
             }
             
             final Delegate<Object> inline = getDelegateOrInline(genericType, strategy);
@@ -519,19 +518,13 @@ final class RuntimeRepeatedFieldFactory
             final PolymorphicSchema.Factory factory = 
                     PolymorphicSchemaFactories.getFactoryFromRepeatedValueGenericType(genericType);
             if(factory != null)
-            {
-                return createCollectionObjectV(number, name, f, messageFactory, 
-                        genericType, factory, strategy);
-            }
+                return createCollectionObjectV(number, name, f, messageFactory, factory, strategy);
             
             if(pojo(genericType, f.getAnnotation(Morph.class), strategy))
                 return createCollectionPojoV(number, name, f, messageFactory, genericType, strategy);
             
             if(genericType.isInterface())
-            {
-                return createCollectionObjectV(number, name, f, messageFactory, 
-                        genericType, PolymorphicSchemaFactories.OBJECT, strategy);
-            }
+                return createCollectionObjectV(number, name, f, messageFactory, PolymorphicSchemaFactories.OBJECT, strategy);
             
             return createCollectionPolymorphicV(number, name, f, messageFactory, genericType, strategy);
         }

@@ -563,15 +563,9 @@ public final class ExplicitIdStrategy extends NumericIdStrategy
         
         return rd == null ? null : rd.delegate;
     }
-    
-    @SuppressWarnings("unchecked")
-    public <T> HasDelegate<T> getDelegateWrapper(Class<? super T> typeClass)
-    {
-        return (HasDelegate<T>)delegateMapping.get(typeClass);
-    }
 
     @SuppressWarnings("unchecked")
-    protected <T> HasDelegate<T> tryWriteDelegateIdTo(Output output, int fieldNumber, 
+    protected <T> Delegate<T> tryWriteDelegateIdTo(Output output, int fieldNumber, 
             Class<T> clazz) throws IOException
     {
         final RegisteredDelegate<T> rd = (RegisteredDelegate<T>)delegateMapping.get(
@@ -582,11 +576,11 @@ public final class ExplicitIdStrategy extends NumericIdStrategy
         
         output.writeUInt32(fieldNumber, rd.id, false);
         
-        return rd;
+        return rd.delegate;
     }
 
     @SuppressWarnings("unchecked")
-    protected <T> HasDelegate<T> transferDelegateId(Input input, Output output, int fieldNumber)
+    protected <T> Delegate<T> transferDelegateId(Input input, Output output, int fieldNumber)
             throws IOException
     {
         final int id = input.readUInt32();
@@ -598,11 +592,11 @@ public final class ExplicitIdStrategy extends NumericIdStrategy
         
         output.writeUInt32(fieldNumber, id, false);
         
-        return rd;
+        return rd.delegate;
     }
 
     @SuppressWarnings("unchecked")
-    protected <T> HasDelegate<T> resolveDelegateFrom(Input input) throws IOException
+    protected <T> Delegate<T> resolveDelegateFrom(Input input) throws IOException
     {
         final int id = input.readUInt32();
         
@@ -611,11 +605,11 @@ public final class ExplicitIdStrategy extends NumericIdStrategy
         if(rd == null)
             throw new UnknownTypeException("delegate id: " + id + " (Outdated registry)");
         
-        return rd;
+        return rd.delegate;
     }
     
     @SuppressWarnings("unchecked")
-    protected <T> HasSchema<T> writePojoIdTo(Output output, int fieldNumber, Class<T> clazz)
+    protected <T> Schema<T> writePojoIdTo(Output output, int fieldNumber, Class<T> clazz)
             throws IOException
     {
         final BaseHS<T> wrapper = (BaseHS<T>)pojoMapping.get(clazz);
@@ -624,7 +618,7 @@ public final class ExplicitIdStrategy extends NumericIdStrategy
         
         output.writeUInt32(fieldNumber, wrapper.id, false);
         
-        return wrapper;
+        return wrapper.getSchema();
     }
     
     @SuppressWarnings("unchecked")

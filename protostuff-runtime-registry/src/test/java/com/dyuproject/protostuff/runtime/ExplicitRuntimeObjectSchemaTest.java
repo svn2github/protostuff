@@ -76,7 +76,7 @@ public class ExplicitRuntimeObjectSchemaTest extends TestCase
         String strategy = System.getProperty("test_id_strategy");
         runTest = strategy == null || strategy.equals("explicit");
         
-        if(runTest)
+        if(runTest || true)
         {
             System.setProperty("protostuff.runtime.id_strategy_factory", 
                     "com.dyuproject.protostuff.runtime.ExplicitRuntimeObjectSchemaTest$IdStrategyFactory");
@@ -138,8 +138,7 @@ public class ExplicitRuntimeObjectSchemaTest extends TestCase
                 .registerPojo(RuntimeException.class, 19)
                 .registerPojo(PojoWithThrowableArray.class, 20)
                 .registerPojo(PojoWithSingletonAsDelegate.class, 21)
-                .registerPojo(PojoWithShortArrayAsDelegate.class, 22)
-                .registerPojo(StackTraceElement.class, 23);
+                .registerPojo(PojoWithShortArrayAsDelegate.class, 22);
             
             r.registerDelegate(new ShortArrayDelegate(), 1);
             r.registerDelegate(SINGLETON_DELEGATE, 2);

@@ -48,8 +48,8 @@ public final class DefaultIdStrategy extends IdStrategy
     final ConcurrentHashMap<String,MapSchema.MessageFactory> mapMapping = 
             new ConcurrentHashMap<String,MapSchema.MessageFactory>();
     
-    final ConcurrentHashMap<String, HasDelegate<?>> delegateMapping = 
-            new ConcurrentHashMap<String, HasDelegate<?>>();
+    final ConcurrentHashMap<String, Delegate<?>> delegateMapping = 
+            new ConcurrentHashMap<String, Delegate<?>>();
     
     public DefaultIdStrategy()
     {
@@ -94,7 +94,7 @@ public final class DefaultIdStrategy extends IdStrategy
     public <T> boolean registerDelegate(Delegate<T> delegate)
     {
         return null == delegateMapping.putIfAbsent(delegate.typeClass().getName(), 
-                new HasDelegate<T>(delegate));
+                delegate);
     }
     
     /**
@@ -135,22 +135,18 @@ public final class DefaultIdStrategy extends IdStrategy
                 ((Mapped<?>)last).typeClass == typeClass);
     }
     
+
+    @Override
     public boolean isDelegateRegistered(Class<?> typeClass)
     {
         return delegateMapping.containsKey(typeClass.getName());
     }
-    
-    @SuppressWarnings("unchecked")
-    public <T> HasDelegate<T> getDelegateWrapper(Class<? super T> typeClass)
-    {
-        return (HasDelegate<T>)delegateMapping.get(typeClass.getName());
-    }
 
     @SuppressWarnings("unchecked")
+    @Override
     public <T> Delegate<T> getDelegate(Class<? super T> typeClass)
     {
-        final HasDelegate<T> last = (HasDelegate<T>)delegateMapping.get(typeClass.getName());
-        return last == null ? null : last.delegate;
+        return (Delegate<T>)delegateMapping.get(typeClass.getName());
     }
     
     public boolean isRegistered(Class<?> typeClass)
@@ -388,53 +384,52 @@ public final class DefaultIdStrategy extends IdStrategy
         return getEnumIO(input.readString(), true);
     }
     
-    @SuppressWarnings("unchecked")
-    protected <T> HasDelegate<T> tryWriteDelegateIdTo(Output output, int fieldNumber, 
+    protected <T> Delegate<T> tryWriteDelegateIdTo(Output output, int fieldNumber, 
             Class<T> clazz) throws IOException
     {
-        final HasDelegate<T> hd = (HasDelegate<T>)delegateMapping.get(clazz.getName());
-        if(hd == null)
+        final Delegate<T> delegate = getDelegate(clazz);
+        if(delegate == null)
             return null;
         
         output.writeString(fieldNumber, clazz.getName(), false);
         
-        return hd;
+        return delegate;
     }
     
     @SuppressWarnings("unchecked")
-    protected <T> HasDelegate<T> transferDelegateId(Input input, Output output, 
+    protected <T> Delegate<T> transferDelegateId(Input input, Output output, 
             int fieldNumber) throws IOException
     {
         final String className = input.readString();
         
-        final HasDelegate<T> hd = (HasDelegate<T>)delegateMapping.get(className);
-        if(hd == null)
+        final Delegate<T> delegate = (Delegate<T>)delegateMapping.get(className);
+        if(delegate == null)
             throw new UnknownTypeException("delegate: " + className + " (Outdated registry)");
         
         output.writeString(fieldNumber, className, false);
         
-        return hd;
+        return delegate;
     }
     
     @SuppressWarnings("unchecked")
-    protected <T> HasDelegate<T> resolveDelegateFrom(Input input) throws IOException
+    protected <T> Delegate<T> resolveDelegateFrom(Input input) throws IOException
     {
         final String className = input.readString();
         
-        final HasDelegate<T> hd = (HasDelegate<T>)delegateMapping.get(className);
-        if(hd == null)
+        final Delegate<T> delegate = (Delegate<T>)delegateMapping.get(className);
+        if(delegate == null)
             throw new UnknownTypeException("delegate: " + className + " (Outdated registry)");
         
-        return hd;
+        return delegate;
     }
     
-    protected <T> HasSchema<T> writePojoIdTo(Output output, int fieldNumber, Class<T> clazz) 
+    protected <T> Schema<T> writePojoIdTo(Output output, int fieldNumber, Class<T> clazz) 
             throws IOException
     {
         output.writeString(fieldNumber, clazz.getName(), false);
         
         // it is important to return the schema initialized (if it hasn't been).
-        return getSchemaWrapper(clazz, true);
+        return getSchemaWrapper(clazz, true).getSchema();
     }
 
     protected <T> HasSchema<T> transferPojoId(Input input, Output output, 

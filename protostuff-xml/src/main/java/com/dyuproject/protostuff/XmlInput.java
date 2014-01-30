@@ -14,7 +14,6 @@
 
 package com.dyuproject.protostuff;
 
-import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
 import static javax.xml.stream.XMLStreamConstants.END_DOCUMENT;
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
@@ -24,6 +23,8 @@ import java.io.IOException;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import com.dyuproject.protostuff.StringSerializer.STRING;
+
 /**
  * An input used for reading data with xml format.
  * 
@@ -32,7 +33,6 @@ import javax.xml.stream.XMLStreamReader;
  */
 public final class XmlInput implements Input
 {
-    private static final byte[] EMPTY = new byte[0];
 
     private final XMLStreamReader parser;
     private boolean emptyMessage = false;
@@ -66,37 +66,12 @@ public final class XmlInput implements Input
         }
     }
     
-    private byte[] getB64Decoded() throws IOException
+    private void endAndNextTag() throws IOException
     {
         try
         {
-            for(int next = parser.next();; next = parser.next())
-            {
-                switch(next)
-                {
-                    case CHARACTERS:
-                        byte[] decoded = B64Code.cdecode(parser.getTextCharacters(), 
-                                parser.getTextStart(), parser.getTextLength());
-                                
-                        while(END_ELEMENT != parser.next());
-                        
-                        // move to next element
-                        parser.nextTag();
-                        
-                        return decoded;
-                        
-                    case END_ELEMENT:
-                        // empty bytestring
-                        
-                        // move to next element
-                        parser.nextTag();
-                        
-                        return EMPTY;
-
-                    default:
-                        continue;
-                }
-            }
+            parser.nextTag();
+            parser.nextTag();
         }
         catch (XMLStreamException e)
         {
@@ -271,24 +246,48 @@ public final class XmlInput implements Input
 
     public byte[] readByteArray() throws IOException
     {
-        return getB64Decoded();
+        return STRING.ser(getText());
     }
     
     public <T> T mergeObject(T value, final Schema<T> schema) throws IOException
     {
-        emptyMessage = nextTag() == END_ELEMENT;
+        //final String simpleName = schema.messageName();
+        if(nextTag() != START_ELEMENT || !schema.messageName().equals(parser.getLocalName()))
+            throw new XmlInputException("Expecting token END_ELEMENT: " + schema.messageName());
+        
+        if(nextTag() == END_ELEMENT)
+        {
+            // empty message
+            emptyMessage = true;
+            
+            //if(!simpleName.equals(parser.getLocalName()))
+            //    throw new XmlInputException("Expecting token END_ELEMENT: " + simpleName);
+            
+            if(value == null)
+                value = schema.newMessage();
+            
+            schema.mergeFrom(this, value);
+            
+            if(!schema.isInitialized(value))
+                throw new UninitializedMessageException(value, schema);
+            
+            // move to end element (field) then onto the next
+            endAndNextTag();
+            return value;
+        }
         
         if(value == null)
             value = schema.newMessage();
-        
         schema.mergeFrom(this, value);
         
         if(!schema.isInitialized(value))
             throw new UninitializedMessageException(value, schema);
         
-        // onto the next
-        nextTag();
+        //if(!simpleName.equals(parser.getLocalName()))
+        //    throw new XmlInputException("Expecting token END_ELEMENT: " + simpleName);
         
+        // move to end element (field) then onto the next
+        endAndNextTag();
         return value;
     }
 

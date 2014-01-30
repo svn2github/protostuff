@@ -31,14 +31,12 @@ package com.dyuproject.protostuff.runtime;
 
 import com.dyuproject.protostuff.Pipe;
 import com.dyuproject.protostuff.Schema;
-import com.dyuproject.protostuff.runtime.PolymorphicSchema.Handler;
 
 /**
  * Wraps a schema.
  */
-public abstract class HasSchema<T> implements PolymorphicSchema.Factory
+public abstract class HasSchema<T>
 {
-    
     /**
      * Gets the schema.
      */
@@ -48,18 +46,5 @@ public abstract class HasSchema<T> implements PolymorphicSchema.Factory
      * Gets the pipe schema.
      */
     public abstract Pipe.Schema<T> getPipeSchema();
-    
-    // for the array of this type
-    
-    @SuppressWarnings("unchecked")
-    public final ArraySchemas.Base genericElementSchema = 
-            new ArraySchemas.PojoArray(null, (HasSchema<Object>)this);
-    
-    @SuppressWarnings("unchecked")
-    public PolymorphicSchema newSchema(Class<?> typeClass, 
-            IdStrategy strategy, Handler handler)
-    {
-        return new ArraySchemas.PojoArray(handler, (HasSchema<Object>)this);
-    }
 
 }

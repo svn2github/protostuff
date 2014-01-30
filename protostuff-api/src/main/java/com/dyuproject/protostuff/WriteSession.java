@@ -14,7 +14,6 @@
 
 package com.dyuproject.protostuff;
 
-import java.io.IOException;
 import java.io.OutputStream;
 
 /**
@@ -72,20 +71,15 @@ public class WriteSession
         sink = WriteSink.BUFFERED;
     }
     
-    public WriteSession(LinkedBuffer head, OutputStream out, int nextBufferSize)
+    public WriteSession(LinkedBuffer head, OutputStream out)
     {
         tail = head;
         this.head = head;
-        this.nextBufferSize = nextBufferSize;
+        this.nextBufferSize = LinkedBuffer.DEFAULT_BUFFER_SIZE;
         this.out = out;
         sink = WriteSink.STREAMED;
         
         assert out != null;
-    }
-    
-    public WriteSession(LinkedBuffer head, OutputStream out)
-    {
-        this(head, out, LinkedBuffer.DEFAULT_BUFFER_SIZE);
     }
     
     /**
@@ -126,27 +120,6 @@ public class WriteSession
         while((node=node.next) != null);
         
         return buf;
-    }
-    
-    protected int flush(byte[] buf, int offset, int len) throws IOException
-    {
-        out.write(buf, offset, len);
-        return offset;
-    }
-    
-    protected int flush(byte[] buf, int offset, int len, 
-            byte[] next, int nextoffset, int nextlen) throws IOException
-    {
-        out.write(buf, offset, len);
-        out.write(next, nextoffset, nextlen);
-        return offset;
-    }
-    
-    protected int flush(LinkedBuffer lb, 
-            byte[] buf, int offset, int len) throws IOException
-    {
-        out.write(buf, offset, len);
-        return lb.start;
     }
 
 }
