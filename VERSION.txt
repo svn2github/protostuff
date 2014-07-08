@@ -1,4 +1,5 @@
 protostuff-1.0.9-SNAPSHOT
++ Issue 161: Optimize ProtobufOuput for small nested messages (max size of 127)
 + Issue 153: YamlOutput bug on repeated message fields
 
 protostuff-1.0.8 2013-12-10

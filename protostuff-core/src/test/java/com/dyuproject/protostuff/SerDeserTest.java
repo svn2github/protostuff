@@ -394,6 +394,15 @@ public abstract class SerDeserTest extends StandardTest
         SerializableObjects.assertEquals(parsedFoo, foo);
     }
     
+    public static String repeatChar(char c, int size)
+    {
+        StringBuilder sb = new StringBuilder(size);
+        while(size-- > 0)
+            sb.append(c);
+        
+        return sb.toString();
+    }
+    
     static void assertEquals(HasHasBar h1, HasHasBar h2)
     {
         // true if both are null
