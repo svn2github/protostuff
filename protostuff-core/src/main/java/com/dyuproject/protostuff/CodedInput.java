@@ -458,9 +458,6 @@ public final class CodedInput implements Input {
     // Keep reading up to 64 bits.
     for (; offset < 64; offset += 7) {
       final byte b = input.readByte();
-      if (b == -1) {
-        throw ProtobufException.truncatedMessage();
-      }
       if ((b & 0x80) == 0) {
         return result;
       }
