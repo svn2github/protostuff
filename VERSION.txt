@@ -1,4 +1,6 @@
 protostuff-1.0.9-SNAPSHOT
++ Issue 165: The value of DataInput.readByte() should not be interpreted/eof-checked 
+             since that method throws EOFException for that
 + Issue 161: Optimize ProtobufOuput for small nested messages (max size of 127)
 + Issue 153: YamlOutput bug on repeated message fields
 
