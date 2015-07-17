@@ -1,0 +1,1 @@
+no proto file - fixture for unit tests

@@ -1,0 +1,10 @@
+package tutorial;
+
+option java_package = "com.example.tutorial";
+option java_outer_classname = "NamePojo";
+
+message Name {
+  required string firstName = 1;
+  required string lastName = 2;
+  optional string middleName = 3;
+}
